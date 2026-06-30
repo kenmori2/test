@@ -198,17 +198,27 @@ public:
         // 1番下に到達したぷよを着地と判定する
         for (int c = 0; c < active.cols(); c++) {
             int above_stack=active.rows() - 1;
-            while(above_stack>=0&&(above_stack,c)!=NONE)above_stack--;
+            while(above_stack>=0&&stack(above_stack,c)!=NONE)above_stack--;
             if(above_stack<0)continue;     //一番上までスタックが溜まっている時
             if (active(above_stack, c) != NONE) {
-                stack(above_stack,c)=active(above_stack,c);
-                active(above_stack, c) = NONE;
-                bool landed=true;
+                landed=true;
                 break;
             }
         }
-        
-
+        if(landed){
+            for (int c = 0; c < active.cols(); c++) {
+                for(int r=active.rows() - 1;r>=0;r--){
+                    if(active(r,c)!=NONE){
+                        int above_stack=active.rows() - 1;
+                        while(above_stack>=0&&stack(above_stack,c)!=NONE)above_stack--;
+                        if(above_stack<0)continue;     //一番上までスタックが溜まっている時
+                        stack(above_stack,c)=active(r,c);
+                        active(r,c)=NONE;
+                        num_landed++;
+                    }
+                }
+            }
+        }
         return num_landed;
     }
 

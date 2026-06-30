@@ -192,19 +192,22 @@ public:
     // ぷよの着地判定．着地したぷよの数を返す
     int MoveLandedPuyo(PuyoArray &stack) {
         PuyoArray &active = *this;  // アクティブ側のぷよ配列
+        bool landed=false;
         int num_landed = 0;         // 着地したぷよの数を数える変数
 
         // 1番下に到達したぷよを着地と判定する
-        {
-            int r = active.rows() - 1;
-            for (int c = 0; c < active.cols(); c++) {
-                if (active(r, c) != NONE) {
-                    // 着地判定されたぷよを消す．本処理は必要に応じて変更する．
-                    active(r, c) = NONE;
-                    num_landed++;
-                }
+        for (int c = 0; c < active.cols(); c++) {
+            int above_stack=active.rows() - 1;
+            while(above_stack>=0&&(above_stack,c)!=NONE)above_stack--;
+            if(above_stack<0)continue;     //一番上までスタックが溜まっている時
+            if (active(above_stack, c) != NONE) {
+                stack(above_stack,c)=active(above_stack,c);
+                active(above_stack, c) = NONE;
+                bool landed=true;
+                break;
             }
         }
+        
 
         return num_landed;
     }

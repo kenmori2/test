@@ -246,8 +246,8 @@ public:
         // ランダムなぷよを生成するように修正してください
         active(0, 2) = randomColor();
         active(0, 3) = randomColor();
-        active.pivotRow = 2;
-        active.pivotCol = 0;
+        active.pivotRow = 0;
+        active.pivotCol = 2;
         active.pivotColor = active(0, 2);
         active.subColor = active(0, 3);
     }
@@ -295,11 +295,40 @@ public:
         }
         return num_landed;
     }
-    void Rotate()
+    void Rotate(const PuyoArray& stack)
     {
-        PuyoArray &active = *this; // アクティブ側のぷよ配列
-        PuyoArray temp1(active), temp2(active), temp3(active), temp4(active);
-        temp1.rotate = 1;
+        PuyoArray& active = *this;
+        PuyoArray temp(active);
+
+        int nextRotate = (temp.rotate + 1) % 4;
+
+        int dr[4] = {0,1,0,-1};
+        int dc[4] = {1,0,-1,0};
+
+        int r = temp.pivotRow;
+        int c = temp.pivotCol;
+
+        int newSubRow = r + dr[nextRotate];
+        int newSubCol = c + dc[nextRotate];
+
+        if (newSubRow < 0 || newSubRow >= temp.rows() ||newSubCol < 0 || newSubCol >= temp.cols()) {
+            return;
+        }
+        if (stack(newSubRow, newSubCol) != NONE) {
+            return;
+        }
+
+        for(int r=0;r<temp.rows();r++){
+            for(int c=0;c<temp.cols();c++){
+                temp(r,c)=NONE;
+            }
+        }
+        
+        temp.rotate = nextRotate;
+        temp(r, c) = temp.pivotColor;
+        temp(newSubRow, newSubCol) = temp.subColor;
+
+        active = temp;
     }
     // 左移動
     void MoveLeft(const PuyoArray &stack)
@@ -537,6 +566,8 @@ int main(int argc, char **argv)
         case 'Q':
             loop = false;
             continue;
+        case 'x':
+            active.Rotate(stack);
         default:
             break;
         }

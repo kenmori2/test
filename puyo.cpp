@@ -138,14 +138,21 @@ public:
     // デフォルトコンストラクタ（独自のメンバ変数を追加した場合は適宜修正すること）
     PuyoArray(){}
     // 盤面サイズを指定して初期化するコンストラクタ（独自のメンバ変数を追加した場合は適宜修正すること）
-    PuyoArray(int rows, int cols) : base(rows, cols){}
+    PuyoArray(int rows, int cols) : base(rows, cols),rotate(0),pivotRow(0),pivotCol(0),pivotColor(0),subColor(0){}
     // コピーコンストラクタ（独自のメンバ変数を追加した場合は適宜修正すること）
-    PuyoArray(const PuyoArray &puyo) : base(puyo){}
+    PuyoArray(const PuyoArray &puyo) : base(puyo),rotate(puyo.rotate),pivotCol(puyo.pivotCol),pivotRow(puyo.pivotRow),pivotColor(puyo.pivotColor),subColor(puyo.subColor){}
 
 public:
     // 代入演算子（独自のメンバ変数を追加した場合は適宜修正すること）
     void operator =(const PuyoArray &puyo) {
-        base::operator =(puyo);
+        if(this!=&puyo){
+            base::operator =(puyo);
+            rotate=puyo.rotate;
+            pivotCol=puyo.pivotCol;
+            pivotRow=puyo.pivotRow;
+            pivotColor=puyo.pivotColor;
+            subColor=puyo.subColor;
+        }
     }
 
     // 2つのぷよ配列で同じ位置にぷよが存在する場合は true を返し，
@@ -183,10 +190,15 @@ public:
     // 盤面に新しいぷよ生成
     void GeneratePuyo() {
         PuyoArray &active = *this;
+        active.rotate=0;
         // 初期コードはRGのぷよを生成するコードとなっています
         // ランダムなぷよを生成するように修正してください
         active(0, 2) = randomColor();
         active(0, 3) = randomColor();
+        active.pivotRow=2;
+        active.pivotCol=0;
+        active.pivotColor=active(0,2);
+        active.subColor=active(0,3);
     }
 
     // ぷよの着地判定．着地したぷよの数を返す
@@ -221,7 +233,11 @@ public:
         }
         return num_landed;
     }
-
+    void Rotate(){
+        PuyoArray &active = *this;  // アクティブ側のぷよ配列
+        PuyoArray temp1(active),temp2(active),temp3(active),temp4(active);
+        temp1.rotate=1;
+    }
     //左移動
     void MoveLeft(const PuyoArray &stack) {
         PuyoArray &active = *this;  // アクティブ側のぷよ配列
@@ -275,11 +291,11 @@ public:
                 }
             }
         }
-
         // アクティブ側にコピー
         active = temp;
     }
 private:
+    int rotate,pivotRow,pivotCol,pivotColor,subColor;
     int randomColor() {
         static std::random_device rd;
         static std::mt19937 gen(rd());

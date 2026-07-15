@@ -252,6 +252,26 @@ public:
         active.subColor = active(0, 3);
     }
 
+    void Gravity(PuyoArray &stack)
+    {
+        PuyoArray &active = *this;
+        for (int c = 0; c < active.cols(); c++)
+        {
+            for (int r = active.rows() - 1; r >= 0; r--)
+            {
+                if (active(r, c) != NONE)
+                {
+                    int above_stack = active.rows() - 1;
+                    while (above_stack >= 0 && stack(above_stack, c) != NONE)
+                        above_stack--;
+                    if (above_stack < 0)
+                        continue; // 一番上までスタックが溜まっている時
+                    stack(above_stack, c) = active(r, c);
+                    active(r, c) = NONE;
+                }
+            }
+        }
+    }
     // ぷよの着地判定．着地したぷよの数を返す
     int MoveLandedPuyo(PuyoArray &stack)
     {
@@ -279,31 +299,21 @@ public:
             {
                 for (int r = active.rows() - 1; r >= 0; r--)
                 {
-                    if (active(r, c) != NONE)
-                    {
-                        int above_stack = active.rows() - 1;
-                        while (above_stack >= 0 && stack(above_stack, c) != NONE)
-                            above_stack--;
-                        if (above_stack < 0)
-                            continue; // 一番上までスタックが溜まっている時
-                        stack(above_stack, c) = active(r, c);
-                        active(r, c) = NONE;
-                        num_landed++;
-                    }
+                    if (active(r, c) != NONE)num_landed++;
                 }
             }
         }
         return num_landed;
     }
-    void Rotate(const PuyoArray& stack)
+    void Rotate(const PuyoArray &stack)
     {
-        PuyoArray& active = *this;
+        PuyoArray &active = *this;
         PuyoArray temp(active);
 
         int nextRotate = (temp.rotate + 1) % 4;
 
-        int dr[4] = {0,1,0,-1};
-        int dc[4] = {1,0,-1,0};
+        int dr[4] = {0, 1, 0, -1};
+        int dc[4] = {1, 0, -1, 0};
 
         int r = temp.pivotRow;
         int c = temp.pivotCol;
@@ -311,19 +321,23 @@ public:
         int newSubRow = r + dr[nextRotate];
         int newSubCol = c + dc[nextRotate];
 
-        if (newSubRow < 0 || newSubRow >= temp.rows() ||newSubCol < 0 || newSubCol >= temp.cols()) {
+        if (newSubRow < 0 || newSubRow >= temp.rows() || newSubCol < 0 || newSubCol >= temp.cols())
+        {
             return;
         }
-        if (stack(newSubRow, newSubCol) != NONE) {
+        if (stack(newSubRow, newSubCol) != NONE)
+        {
             return;
         }
 
-        for(int r=0;r<temp.rows();r++){
-            for(int c=0;c<temp.cols();c++){
-                temp(r,c)=NONE;
+        for (int r = 0; r < temp.rows(); r++)
+        {
+            for (int c = 0; c < temp.cols(); c++)
+            {
+                temp(r, c) = NONE;
             }
         }
-        
+
         temp.rotate = nextRotate;
         temp(r, c) = temp.pivotColor;
         temp(newSubRow, newSubCol) = temp.subColor;
@@ -575,12 +589,19 @@ int main(int argc, char **argv)
         // 処理速度調整のためのif文
         if (delay % waitCount == 0)
         {
+            if (active.MoveLandedPuyo(stack) > 0)
+            {
+                // 着地していたら新しいぷよ生成
+                active.Gravity(stack);
+                active.GeneratePuyo();
+            }
             // ぷよ下に移動
             active.MoveDown(stack);
 
             // ぷよ着地判定
             if (active.MoveLandedPuyo(stack) > 0)
             {
+                active.Gravity(stack);
                 // 着地していたら新しいぷよ生成
                 active.GeneratePuyo();
             }

@@ -645,7 +645,7 @@ int main(int argc, char **argv)
         default:
             break;
         }
-
+        
         // 処理速度調整のためのif文
         if (delay % waitCount == 0)
         {
@@ -653,17 +653,16 @@ int main(int argc, char **argv)
             {
                 // 着地していたら新しいぷよ生成
                 active.Gravity(stack);
-                stack.ErasePuyo();
+                stack.ErasePuyoAll();
                 active.GeneratePuyo();
             }
             // ぷよ下に移動
             active.MoveDown(stack);
-
             // ぷよ着地判定
             if (active.MoveLandedPuyo(stack) > 0)
             {
                 active.Gravity(stack);
-                // 着地していたら新しいぷよ生成
+                stack.ErasePuyoAll();
                 active.GeneratePuyo();
             }
         }

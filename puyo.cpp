@@ -364,8 +364,9 @@ public:
         ErasePuyoRec(erased, r - 1, c, puyocolor);
     }
 
-    void ErasePuyo()
+    int ErasePuyo()
     {
+        int erased_puyos=0;
         for (int r = 0; r < rows(); r++)
         {
             for (int c = 0; c < cols(); c++)
@@ -378,9 +379,29 @@ public:
                 tstack.ErasePuyoRec(erased, r, c, tstack(r, c));
                 if (erased.count() >= 4)
                 {
+                    erased_puyos+=erased.count();
                     *this = tstack;
                 }
             }
+        }
+        return erased_puyos;
+    }
+    void ErasePuyoAll(){
+        PuyoArray &stack = *this;
+        while(true){
+            if(ErasePuyo()==0)return;
+
+            PuyoArray active(rows(), cols());
+            //浮いているstackにあるやつを消してactiveに移す
+            for(int c=0;c<cols();c++){
+                for(int r=rows()-1;r>0;r--){
+                    if(stack(r,c)==NONE&&stack(r-1,c)!=NONE){
+                        active(r-1,c)=stack(r-1,c);
+                        stack(r-1,c)=NONE;
+                    }
+                }
+            }
+            active.Gravity(stack);
         }
     }
     // 左移動
@@ -632,6 +653,7 @@ int main(int argc, char **argv)
             {
                 // 着地していたら新しいぷよ生成
                 active.Gravity(stack);
+                stack.ErasePuyo();
                 active.GeneratePuyo();
             }
             // ぷよ下に移動

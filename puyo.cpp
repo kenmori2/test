@@ -299,7 +299,8 @@ public:
             {
                 for (int r = active.rows() - 1; r >= 0; r--)
                 {
-                    if (active(r, c) != NONE)num_landed++;
+                    if (active(r, c) != NONE)
+                        num_landed++;
                 }
             }
         }
@@ -343,6 +344,44 @@ public:
         temp(newSubRow, newSubCol) = temp.subColor;
 
         active = temp;
+    }
+    // 一回の処理で繋がったマスを消してerasedに消したマスを入れる
+    void ErasePuyoRec(PuyoArray &erased, int r, int c, int puyocolor)
+    {
+        if (r < 0 || r >= rows() || c < 0 || c >= cols())
+        {
+            return;
+        }
+        if ((*this)(r, c) != puyocolor)
+        {
+            return;
+        }
+        erased(r, c) = puyocolor;
+        (*this)(r, c) = NONE;
+        ErasePuyoRec(erased, r, c + 1, puyocolor);
+        ErasePuyoRec(erased, r + 1, c, puyocolor);
+        ErasePuyoRec(erased, r, c - 1, puyocolor);
+        ErasePuyoRec(erased, r - 1, c, puyocolor);
+    }
+
+    void ErasePuyo()
+    {
+        for (int r = 0; r < rows(); r++)
+        {
+            for (int c = 0; c < cols(); c++)
+            {
+                if ((*this)(r, c) == NONE)
+                    continue;
+
+                PuyoArray tstack(*this);
+                PuyoArray erased(rows(), cols());
+                tstack.ErasePuyoRec(erased, r, c, tstack(r, c));
+                if (erased.count() >= 4)
+                {
+                    *this = tstack;
+                }
+            }
+        }
     }
     // 左移動
     void MoveLeft(const PuyoArray &stack)
